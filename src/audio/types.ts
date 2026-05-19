@@ -34,13 +34,40 @@ export const DEFAULT_CLAP_PARAMS: ClapParams = {
   mix: 0.4,
 }
 
+export type HatParams = {
+  tone: number
+  color: number
+  body: number
+  metal: number
+  attack: number
+  decay: number
+}
+
+export const DEFAULT_CLOSED_HAT_PARAMS: HatParams = {
+  tone: 380,
+  color: 7500,
+  body: 1.1,
+  metal: 0.3,
+  attack: 0.8,
+  decay: 0.06,
+}
+
+export const DEFAULT_OPEN_HAT_PARAMS: HatParams = {
+  tone: 360,
+  color: 6500,
+  body: 1.0,
+  metal: 0.4,
+  attack: 0.7,
+  decay: 0.42,
+}
+
 export type Dot = {
   id: string
   position: number
   velocity: number
 }
 
-export type SampleType = 'kick' | 'clap'
+export type SampleType = 'kick' | 'clap' | 'hat-closed' | 'hat-open'
 
 type SampleBase = {
   id: string
@@ -54,7 +81,8 @@ type SampleBase = {
 
 export type KickSample = SampleBase & { type: 'kick'; params: KickParams }
 export type ClapSample = SampleBase & { type: 'clap'; params: ClapParams }
-export type Sample = KickSample | ClapSample
+export type HatSample = SampleBase & { type: 'hat-closed' | 'hat-open'; params: HatParams }
+export type Sample = KickSample | ClapSample | HatSample
 
 export type SequenceState = {
   bpm: number

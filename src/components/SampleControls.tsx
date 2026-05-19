@@ -1,6 +1,6 @@
 import { Play } from 'lucide-react'
 import type { AudioEngine } from '@/audio/AudioEngine'
-import type { ClapSample, KickSample, Sample } from '@/audio/types'
+import type { ClapSample, HatSample, KickSample, Sample } from '@/audio/types'
 import { LabeledSlider } from '@/components/LabeledSlider'
 import { Button } from '@/components/ui/button'
 import { useStore } from '@/state/store'
@@ -65,7 +65,13 @@ export function SampleControls({ sample, engine }: Props) {
         </div>
       </div>
 
-      {sample.type === 'kick' ? <KickKnobs sample={sample} /> : <ClapKnobs sample={sample} />}
+      {sample.type === 'kick' ? (
+        <KickKnobs sample={sample} />
+      ) : sample.type === 'clap' ? (
+        <ClapKnobs sample={sample} />
+      ) : (
+        <HatKnobs sample={sample} />
+      )}
     </section>
   )
 }
@@ -193,6 +199,70 @@ function ClapKnobs({ sample }: { sample: ClapSample }) {
         step={0.01}
         format={(v) => v.toFixed(2)}
         onChange={(v) => set({ mix: v })}
+      />
+    </div>
+  )
+}
+
+function HatKnobs({ sample }: { sample: HatSample }) {
+  const { dispatch } = useStore()
+  const p = sample.params
+  const set = (params: Partial<typeof p>) => dispatch({ type: 'set-sample-params', sampleId: sample.id, params })
+  return (
+    <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+      <LabeledSlider
+        label="Tone"
+        value={p.tone}
+        min={100}
+        max={800}
+        step={1}
+        format={(v) => `${v.toFixed(0)} Hz`}
+        onChange={(v) => set({ tone: v })}
+      />
+      <LabeledSlider
+        label="Color"
+        value={p.color}
+        min={2000}
+        max={12000}
+        step={50}
+        format={(v) => `${(v / 1000).toFixed(1)} kHz`}
+        onChange={(v) => set({ color: v })}
+      />
+      <LabeledSlider
+        label="Body"
+        value={p.body}
+        min={0.3}
+        max={6}
+        step={0.05}
+        format={(v) => `Q ${v.toFixed(2)}`}
+        onChange={(v) => set({ body: v })}
+      />
+      <LabeledSlider
+        label="Metal"
+        value={p.metal}
+        min={0}
+        max={1}
+        step={0.01}
+        format={(v) => v.toFixed(2)}
+        onChange={(v) => set({ metal: v })}
+      />
+      <LabeledSlider
+        label="Attack"
+        value={p.attack}
+        min={0}
+        max={1}
+        step={0.01}
+        format={(v) => v.toFixed(2)}
+        onChange={(v) => set({ attack: v })}
+      />
+      <LabeledSlider
+        label="Decay"
+        value={p.decay}
+        min={0.02}
+        max={1.2}
+        step={0.005}
+        format={(v) => `${(v * 1000).toFixed(0)} ms`}
+        onChange={(v) => set({ decay: v })}
       />
     </div>
   )

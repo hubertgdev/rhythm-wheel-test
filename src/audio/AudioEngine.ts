@@ -1,8 +1,9 @@
 import { ClapSynth } from './ClapSynth'
+import { HatSynth } from './HatSynth'
 import { KickSynth } from './KickSynth'
 import type { Sample, SequenceState } from './types'
 
-type Synth = KickSynth | ClapSynth
+type Synth = KickSynth | ClapSynth | HatSynth
 type GetState = () => SequenceState
 
 const createSynthFor = (ctx: AudioContext, sample: Sample): Synth => {
@@ -11,6 +12,9 @@ const createSynthFor = (ctx: AudioContext, sample: Sample): Synth => {
       return new KickSynth(ctx, sample.params)
     case 'clap':
       return new ClapSynth(ctx, sample.params)
+    case 'hat-closed':
+    case 'hat-open':
+      return new HatSynth(ctx, sample.params)
   }
 }
 
@@ -18,6 +22,8 @@ const applyParams = (synth: Synth, sample: Sample) => {
   if (sample.type === 'kick' && synth instanceof KickSynth) {
     synth.setParams(sample.params)
   } else if (sample.type === 'clap' && synth instanceof ClapSynth) {
+    synth.setParams(sample.params)
+  } else if ((sample.type === 'hat-closed' || sample.type === 'hat-open') && synth instanceof HatSynth) {
     synth.setParams(sample.params)
   }
 }

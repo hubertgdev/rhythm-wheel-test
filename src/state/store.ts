@@ -2,7 +2,10 @@ import { createContext, useContext } from 'react'
 import {
   type ClapParams,
   DEFAULT_CLAP_PARAMS,
+  DEFAULT_CLOSED_HAT_PARAMS,
   DEFAULT_KICK_PARAMS,
+  DEFAULT_OPEN_HAT_PARAMS,
+  type HatParams,
   type KickParams,
   type Sample,
   type SequenceState,
@@ -60,6 +63,28 @@ export const initialState: SequenceState = {
       even: false,
       swing: 0,
     },
+    {
+      id: 'hat-closed',
+      name: 'Hi-hat (closed)',
+      type: 'hat-closed',
+      params: { ...DEFAULT_CLOSED_HAT_PARAMS },
+      repetitions: 8,
+      dots: evenDots(8, 0),
+      snap: true,
+      even: true,
+      swing: 0,
+    },
+    {
+      id: 'hat-open',
+      name: 'Hi-hat (open)',
+      type: 'hat-open',
+      params: { ...DEFAULT_OPEN_HAT_PARAMS },
+      repetitions: 0,
+      dots: [],
+      snap: true,
+      even: false,
+      swing: 0,
+    },
   ],
 }
 
@@ -67,7 +92,11 @@ export type Action =
   | { type: 'set-bpm'; value: number }
   | { type: 'set-beats'; value: number }
   | { type: 'set-playing'; value: boolean }
-  | { type: 'set-sample-params'; sampleId: string; params: Partial<KickParams> | Partial<ClapParams> }
+  | {
+      type: 'set-sample-params'
+      sampleId: string
+      params: Partial<KickParams> | Partial<ClapParams> | Partial<HatParams>
+    }
   | { type: 'set-repetitions'; sampleId: string; value: number }
   | { type: 'set-snap'; sampleId: string; value: boolean }
   | { type: 'set-even'; sampleId: string; value: boolean }
