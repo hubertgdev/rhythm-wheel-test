@@ -16,23 +16,43 @@ export const DEFAULT_KICK_PARAMS: KickParams = {
   drive: 0.15,
 }
 
+export type ClapParams = {
+  tone: number
+  body: number
+  spread: number
+  attack: number
+  tail: number
+  mix: number
+}
+
+export const DEFAULT_CLAP_PARAMS: ClapParams = {
+  tone: 1200,
+  body: 1.4,
+  spread: 0.012,
+  attack: 0.6,
+  tail: 0.18,
+  mix: 0.4,
+}
+
 export type Dot = {
   id: string
   position: number
   velocity: number
 }
 
-export type SampleType = 'kick'
+export type SampleType = 'kick' | 'clap'
 
-export type Sample = {
+type SampleBase = {
   id: string
   name: string
-  type: SampleType
-  params: KickParams
   repetitions: number
   dots: Dot[]
   snap: boolean
 }
+
+export type KickSample = SampleBase & { type: 'kick'; params: KickParams }
+export type ClapSample = SampleBase & { type: 'clap'; params: ClapParams }
+export type Sample = KickSample | ClapSample
 
 export type SequenceState = {
   bpm: number

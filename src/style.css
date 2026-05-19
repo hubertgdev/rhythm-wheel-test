@@ -73,6 +73,8 @@
   --rw-tick: oklch(0.78 0.005 250);
   --rw-tick-strong: oklch(0.45 0.01 250);
   --rw-dot-line: oklch(0.7 0.01 250);
+  --rw-sample-kick: oklch(0.55 0.18 255);
+  --rw-sample-clap: oklch(0.62 0.17 25);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -113,6 +115,8 @@
   --rw-tick: oklch(0.4 0.005 230);
   --rw-tick-strong: oklch(0.7 0.005 230);
   --rw-dot-line: oklch(0.5 0.005 230);
+  --rw-sample-kick: oklch(0.78 0.13 190);
+  --rw-sample-clap: oklch(0.8 0.13 55);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -170,10 +174,16 @@
   opacity: 0.7;
 }
 .rw-dot {
-  fill: var(--rw-accent);
+  fill: var(--rw-sample-color, var(--rw-accent));
   stroke: var(--background);
   stroke-width: 2;
   transition: opacity 80ms linear;
+}
+.rw-sample-kick {
+  --rw-sample-color: var(--rw-sample-kick);
+}
+.rw-sample-clap {
+  --rw-sample-color: var(--rw-sample-clap);
 }
 .rw-dot-hit {
   fill: transparent;
@@ -196,7 +206,7 @@
   width: 10px;
   height: 10px;
   border-radius: 9999px;
-  background: var(--rw-accent);
+  background: var(--rw-sample-color, var(--rw-accent));
 }
 
 /* Range input */

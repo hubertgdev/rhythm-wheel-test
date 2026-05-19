@@ -170,7 +170,7 @@ export function Wheel({ engine, isPlaying }: Props) {
           }
           const dotRadius = 9 + pulse * 6
           return (
-            <g key={dot.id}>
+            <g key={dot.id} className={`rw-sample-${sample.type}`}>
               <line x1={CENTER} y1={CENTER} x2={x} y2={y} className="rw-dot-line" strokeLinecap="round" />
               <circle
                 cx={x}

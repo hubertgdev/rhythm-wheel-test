@@ -1,12 +1,32 @@
+import { ClapSynth } from './ClapSynth'
 import { KickSynth } from './KickSynth'
-import type { SequenceState } from './types'
+import type { Sample, SequenceState } from './types'
 
+type Synth = KickSynth | ClapSynth
 type GetState = () => SequenceState
+
+const createSynthFor = (ctx: AudioContext, sample: Sample): Synth => {
+  switch (sample.type) {
+    case 'kick':
+      return new KickSynth(ctx, sample.params)
+    case 'clap':
+      return new ClapSynth(ctx, sample.params)
+  }
+}
+
+const applyParams = (synth: Synth, sample: Sample) => {
+  if (sample.type === 'kick' && synth instanceof KickSynth) {
+    synth.setParams(sample.params)
+  } else if (sample.type === 'clap' && synth instanceof ClapSynth) {
+    synth.setParams(sample.params)
+  }
+}
 
 export class AudioEngine {
   private ctx: AudioContext | null = null
   private master: GainNode | null = null
-  private synths: Map<string, KickSynth> = new Map()
+  private synths: Map<string, Synth> = new Map()
+  private synthTypes: Map<string, Sample['type']> = new Map()
   private timer: number | null = null
   private getState: GetState
 
@@ -39,18 +59,27 @@ export class AudioEngine {
     for (const sample of state.samples) {
       seen.add(sample.id)
       let synth = this.synths.get(sample.id)
+      const currentType = this.synthTypes.get(sample.id)
+      if (synth && currentType !== sample.type) {
+        synth.dispose()
+        synth = undefined
+        this.synths.delete(sample.id)
+        this.synthTypes.delete(sample.id)
+      }
       if (!synth) {
-        synth = new KickSynth(this.ctx, sample.params)
+        synth = createSynthFor(this.ctx, sample)
         synth.connect(this.master)
         this.synths.set(sample.id, synth)
+        this.synthTypes.set(sample.id, sample.type)
       } else {
-        synth.setParams(sample.params)
+        applyParams(synth, sample)
       }
     }
     for (const [id, synth] of this.synths) {
       if (!seen.has(id)) {
         synth.dispose()
         this.synths.delete(id)
+        this.synthTypes.delete(id)
       }
     }
   }

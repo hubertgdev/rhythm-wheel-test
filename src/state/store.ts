@@ -1,5 +1,12 @@
 import { createContext, useContext } from 'react'
-import { DEFAULT_KICK_PARAMS, type KickParams, type Sample, type SequenceState } from '@/audio/types'
+import {
+  type ClapParams,
+  DEFAULT_CLAP_PARAMS,
+  DEFAULT_KICK_PARAMS,
+  type KickParams,
+  type Sample,
+  type SequenceState,
+} from '@/audio/types'
 
 let dotCounter = 0
 const newDotId = () => `dot-${++dotCounter}-${Date.now().toString(36)}`
@@ -16,6 +23,9 @@ const evenDots = (count: number, prev: Sample['dots'] = []): Sample['dots'] => {
   return out
 }
 
+const dotsAt = (positions: number[]): Sample['dots'] =>
+  positions.map((position) => ({ id: newDotId(), position, velocity: 0.85 }))
+
 export const initialState: SequenceState = {
   bpm: 110,
   beats: 16,
@@ -30,6 +40,15 @@ export const initialState: SequenceState = {
       dots: evenDots(4),
       snap: true,
     },
+    {
+      id: 'clap',
+      name: 'Clap',
+      type: 'clap',
+      params: { ...DEFAULT_CLAP_PARAMS },
+      repetitions: 2,
+      dots: dotsAt([0.25, 0.75]),
+      snap: true,
+    },
   ],
 }
 
@@ -37,7 +56,7 @@ export type Action =
   | { type: 'set-bpm'; value: number }
   | { type: 'set-beats'; value: number }
   | { type: 'set-playing'; value: boolean }
-  | { type: 'set-kick-params'; sampleId: string; params: Partial<KickParams> }
+  | { type: 'set-sample-params'; sampleId: string; params: Partial<KickParams> | Partial<ClapParams> }
   | { type: 'set-repetitions'; sampleId: string; value: number }
   | { type: 'set-snap'; sampleId: string; value: boolean }
   | { type: 'redistribute-dots'; sampleId: string }
@@ -56,11 +75,12 @@ export function reducer(state: SequenceState, action: Action): SequenceState {
       return { ...state, beats: clamp(Math.round(action.value), 1, 64) }
     case 'set-playing':
       return { ...state, isPlaying: action.value }
-    case 'set-kick-params':
-      return updateSample(state, action.sampleId, (s) => ({
-        ...s,
-        params: { ...s.params, ...action.params },
-      }))
+    case 'set-sample-params':
+      return updateSample(
+        state,
+        action.sampleId,
+        (s) => ({ ...s, params: { ...s.params, ...action.params } }) as Sample,
+      )
     case 'set-repetitions': {
       const value = clamp(Math.round(action.value), 0, 32)
       return updateSample(state, action.sampleId, (s) => {
