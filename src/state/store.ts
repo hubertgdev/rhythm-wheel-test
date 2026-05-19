@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react'
+import { freqToNote } from '@/audio/MonoSynth'
 import {
   type ClapParams,
   DEFAULT_CLAP_PARAMS,
@@ -113,15 +114,27 @@ export const initialState: SequenceState = {
   ],
 }
 
+const migrateSampleParams = (sample: Sample): Sample => {
+  if (sample.type !== 'synth-a' && sample.type !== 'synth-b') return sample
+  const p = sample.params as Partial<SynthParams> & { pitch?: number }
+  if (typeof p.note === 'number' && typeof p.octave === 'number') return sample
+  const { pitch, ...rest } = p
+  const fallback = typeof pitch === 'number' ? freqToNote(pitch) : { note: 0, octave: 3 }
+  return {
+    ...sample,
+    params: { ...rest, note: fallback.note, octave: fallback.octave } as SynthParams,
+  } as Sample
+}
+
 export function mergeWithDefaults(loaded: SequenceState): SequenceState {
-  const loadedById = new Map(loaded.samples.map((s) => [s.id, s]))
+  const loadedById = new Map(loaded.samples.map((s) => [s.id, migrateSampleParams(s)]))
   const samples: Sample[] = []
   for (const def of initialState.samples) {
     samples.push(loadedById.get(def.id) ?? def)
   }
   const defaultIds = new Set(initialState.samples.map((s) => s.id))
   for (const s of loaded.samples) {
-    if (!defaultIds.has(s.id)) samples.push(s)
+    if (!defaultIds.has(s.id)) samples.push(migrateSampleParams(s))
   }
   return { ...loaded, samples }
 }

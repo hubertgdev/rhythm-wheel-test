@@ -1,5 +1,6 @@
 import { Play } from 'lucide-react'
 import type { AudioEngine } from '@/audio/AudioEngine'
+import { NOTE_NAMES } from '@/audio/MonoSynth'
 import type { ClapSample, HatSample, KickSample, Sample, SynthSample, WaveType } from '@/audio/types'
 import { LabeledSelect } from '@/components/LabeledSelect'
 import { LabeledSlider } from '@/components/LabeledSlider'
@@ -291,15 +292,30 @@ function SynthKnobs({ sample }: { sample: SynthSample }) {
   const set = (params: Partial<typeof p>) => dispatch({ type: 'set-sample-params', sampleId: sample.id, params })
   return (
     <div className="grid grid-cols-2 gap-x-3 gap-y-2">
-      <LabeledSelect label="Wave" value={p.wave} options={WAVE_OPTIONS} onChange={(v) => set({ wave: v })} />
+      <LabeledSelect
+        label="Wave"
+        value={p.wave}
+        options={WAVE_OPTIONS}
+        onChange={(v) => set({ wave: v })}
+        className="col-span-2"
+      />
       <LabeledSlider
-        label="Pitch"
-        value={p.pitch}
-        min={30}
-        max={2000}
+        label="Note"
+        value={p.note}
+        min={0}
+        max={11}
         step={1}
-        format={(v) => `${v.toFixed(0)} Hz`}
-        onChange={(v) => set({ pitch: v })}
+        format={(v) => NOTE_NAMES[v] ?? '?'}
+        onChange={(v) => set({ note: v })}
+      />
+      <LabeledSlider
+        label="Octave"
+        value={p.octave}
+        min={0}
+        max={6}
+        step={1}
+        format={(v) => `${v}`}
+        onChange={(v) => set({ octave: v })}
       />
       <LabeledSlider
         label="Attack"

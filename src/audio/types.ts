@@ -65,7 +65,8 @@ export type WaveType = 'sine' | 'square' | 'sawtooth' | 'triangle'
 
 export type SynthParams = {
   wave: WaveType
-  pitch: number
+  note: number
+  octave: number
   attack: number
   release: number
   cutoff: number
@@ -74,7 +75,8 @@ export type SynthParams = {
 
 export const DEFAULT_SYNTH_A_PARAMS: SynthParams = {
   wave: 'square',
-  pitch: 220,
+  note: 0,
+  octave: 3,
   attack: 0.005,
   release: 0.35,
   cutoff: 1800,
@@ -83,7 +85,8 @@ export const DEFAULT_SYNTH_A_PARAMS: SynthParams = {
 
 export const DEFAULT_SYNTH_B_PARAMS: SynthParams = {
   wave: 'sawtooth',
-  pitch: 440,
+  note: 0,
+  octave: 3,
   attack: 0.05,
   release: 0.9,
   cutoff: 2600,
