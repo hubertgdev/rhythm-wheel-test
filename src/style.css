@@ -228,6 +228,16 @@
   opacity: 0.2;
   stroke-dasharray: 2 4;
 }
+.rw-dot-line {
+  stroke: var(--rw-sample-color, var(--rw-dot-line));
+  stroke-width: 1.5;
+  opacity: 0.25;
+  transition: opacity 90ms linear;
+  pointer-events: none;
+}
+.rw-dot-line-active {
+  opacity: 0.95;
+}
 .rw-center {
   fill: var(--rw-tick-strong);
 }

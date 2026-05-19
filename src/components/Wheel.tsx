@@ -183,8 +183,17 @@ export function Wheel({ engine, isPlaying }: Props) {
             if (sinceLast < 0.2) pulse = 1 - sinceLast / 0.2
           }
           const dotRadius = baseDotR + pulse * (baseDotR * 0.7)
+          const isLineActive = drag !== null && (drag.dotId === dot.id || (sample.even && drag.sampleId === sample.id))
           return (
             <g key={dot.id} className={`rw-sample-${sample.type}`}>
+              <line
+                x1={CENTER}
+                y1={CENTER}
+                x2={x}
+                y2={y}
+                className={`rw-dot-line ${isLineActive ? 'rw-dot-line-active' : ''}`}
+                strokeLinecap="round"
+              />
               <circle
                 cx={x}
                 cy={y}
