@@ -102,6 +102,7 @@ export type Action =
   | { type: 'set-even'; sampleId: string; value: boolean }
   | { type: 'set-swing'; sampleId: string; value: number }
   | { type: 'update-dot'; sampleId: string; dotId: string; position?: number; velocity?: number }
+  | { type: 'load-state'; state: SequenceState }
 
 const updateSample = (state: SequenceState, sampleId: string, fn: (s: Sample) => Sample): SequenceState => ({
   ...state,
@@ -185,6 +186,8 @@ export function reducer(state: SequenceState, action: Action): SequenceState {
           ),
         }
       })
+    case 'load-state':
+      return action.state
   }
 }
 
