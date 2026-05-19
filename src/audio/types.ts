@@ -49,6 +49,7 @@ type SampleBase = {
   dots: Dot[]
   snap: boolean
   even: boolean
+  swing: number
 }
 
 export type KickSample = SampleBase & { type: 'kick'; params: KickParams }

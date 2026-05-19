@@ -35,7 +35,17 @@ export function SampleControls({ sample, engine }: Props) {
           max={32}
           onChange={(v) => dispatch({ type: 'set-repetitions', sampleId: sample.id, value: v })}
         />
-        <div className="flex items-end gap-4 pb-1">
+        <LabeledSlider
+          label="Swing"
+          value={sample.swing}
+          min={0}
+          max={1}
+          step={0.01}
+          disabled={!sample.even}
+          format={(v) => `${Math.round(v * 100)}%`}
+          onChange={(v) => dispatch({ type: 'set-swing', sampleId: sample.id, value: v })}
+        />
+        <div className="col-span-2 flex items-center gap-4">
           <label className="flex h-7 items-center gap-1.5 text-xs select-none">
             <input
               type="checkbox"

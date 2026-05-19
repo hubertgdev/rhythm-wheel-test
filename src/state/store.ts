@@ -11,12 +11,19 @@ import {
 let dotCounter = 0
 const newDotId = () => `dot-${++dotCounter}-${Date.now().toString(36)}`
 
-const evenDots = (count: number, prev: Sample['dots'] = []): Sample['dots'] => {
+const swingFactor = (swing: number) => 0.5 + 0.25 * Math.max(0, Math.min(1, swing))
+
+const evenDots = (count: number, swing: number, prev: Sample['dots'] = []): Sample['dots'] => {
   const out: Sample['dots'] = []
+  const n = Math.max(1, count)
+  const pair = 2 / n
+  const f = swingFactor(swing)
   for (let i = 0; i < count; i++) {
+    const base = Math.floor(i / 2) * pair
+    const offset = (i % 2) * f * pair
     out.push({
       id: prev[i]?.id ?? newDotId(),
-      position: i / Math.max(1, count),
+      position: (base + offset) % 1,
       velocity: prev[i]?.velocity ?? 0.8,
     })
   }
@@ -37,9 +44,10 @@ export const initialState: SequenceState = {
       type: 'kick',
       params: { ...DEFAULT_KICK_PARAMS },
       repetitions: 4,
-      dots: evenDots(4),
+      dots: evenDots(4, 0),
       snap: true,
       even: true,
+      swing: 0,
     },
     {
       id: 'clap',
@@ -50,6 +58,7 @@ export const initialState: SequenceState = {
       dots: dotsAt([0.25, 0.75]),
       snap: true,
       even: false,
+      swing: 0,
     },
   ],
 }
@@ -62,6 +71,7 @@ export type Action =
   | { type: 'set-repetitions'; sampleId: string; value: number }
   | { type: 'set-snap'; sampleId: string; value: boolean }
   | { type: 'set-even'; sampleId: string; value: boolean }
+  | { type: 'set-swing'; sampleId: string; value: number }
   | { type: 'update-dot'; sampleId: string; dotId: string; position?: number; velocity?: number }
 
 const updateSample = (state: SequenceState, sampleId: string, fn: (s: Sample) => Sample): SequenceState => ({
@@ -87,7 +97,7 @@ export function reducer(state: SequenceState, action: Action): SequenceState {
       const value = clamp(Math.round(action.value), 0, 32)
       return updateSample(state, action.sampleId, (s) => {
         if (s.even) {
-          return { ...s, repetitions: value, dots: evenDots(value, s.dots) }
+          return { ...s, repetitions: value, dots: evenDots(value, s.swing, s.dots) }
         }
         const dots = [...s.dots]
         if (value > dots.length) {
@@ -104,8 +114,16 @@ export function reducer(state: SequenceState, action: Action): SequenceState {
       return updateSample(state, action.sampleId, (s) => ({ ...s, snap: action.value }))
     case 'set-even':
       return updateSample(state, action.sampleId, (s) =>
-        action.value ? { ...s, even: true, dots: evenDots(s.repetitions, s.dots) } : { ...s, even: false },
+        action.value ? { ...s, even: true, dots: evenDots(s.repetitions, s.swing, s.dots) } : { ...s, even: false },
       )
+    case 'set-swing':
+      return updateSample(state, action.sampleId, (s) => {
+        const swing = clamp(action.value, 0, 1)
+        if (s.even) {
+          return { ...s, swing, dots: evenDots(s.repetitions, swing, s.dots) }
+        }
+        return { ...s, swing }
+      })
     case 'update-dot':
       return updateSample(state, action.sampleId, (s) => {
         if (s.even && action.position !== undefined) {
