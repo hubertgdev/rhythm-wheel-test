@@ -56,6 +56,7 @@ export const initialState: SequenceState = {
       even: true,
       swing: 0,
       volume: 1,
+      sidechain: 0,
       collapsed: false,
     },
     {
@@ -69,6 +70,7 @@ export const initialState: SequenceState = {
       even: false,
       swing: 0,
       volume: 0.55,
+      sidechain: 0,
       collapsed: false,
     },
     {
@@ -82,6 +84,7 @@ export const initialState: SequenceState = {
       even: false,
       swing: 0,
       volume: 0.7,
+      sidechain: 0,
       collapsed: false,
     },
     {
@@ -95,6 +98,7 @@ export const initialState: SequenceState = {
       even: true,
       swing: 0,
       volume: 0.5,
+      sidechain: 0,
       collapsed: false,
     },
     {
@@ -108,6 +112,7 @@ export const initialState: SequenceState = {
       even: false,
       swing: 0,
       volume: 0.5,
+      sidechain: 0,
       collapsed: false,
     },
     {
@@ -121,6 +126,7 @@ export const initialState: SequenceState = {
       even: false,
       swing: 0,
       volume: 0.75,
+      sidechain: 0,
       collapsed: true,
     },
     {
@@ -134,6 +140,7 @@ export const initialState: SequenceState = {
       even: false,
       swing: 0,
       volume: 0.7,
+      sidechain: 0,
       collapsed: true,
     },
   ],
@@ -154,6 +161,9 @@ const migrateSampleParams = (sample: Sample): Sample => {
   }
   if (typeof (next as { volume?: number }).volume !== 'number') {
     next = { ...next, volume: 1 } as Sample
+  }
+  if (typeof (next as { sidechain?: number }).sidechain !== 'number') {
+    next = { ...next, sidechain: 0 } as Sample
   }
   if (typeof (next as { collapsed?: boolean }).collapsed !== 'boolean') {
     next = { ...next, collapsed: false } as Sample
@@ -193,6 +203,7 @@ export type Action =
   | { type: 'set-even'; sampleId: string; value: boolean }
   | { type: 'set-swing'; sampleId: string; value: number }
   | { type: 'set-volume'; sampleId: string; value: number }
+  | { type: 'set-sidechain'; sampleId: string; value: number }
   | { type: 'set-collapsed'; sampleId: string; value: boolean }
   | { type: 'update-dot'; sampleId: string; dotId: string; position: number }
   | { type: 'load-state'; state: SequenceState }
@@ -249,6 +260,8 @@ export function reducer(state: SequenceState, action: Action): SequenceState {
       })
     case 'set-volume':
       return updateSample(state, action.sampleId, (s) => ({ ...s, volume: clamp(action.value, 0, 1) }))
+    case 'set-sidechain':
+      return updateSample(state, action.sampleId, (s) => ({ ...s, sidechain: clamp(action.value, 0, 1) }))
     case 'set-collapsed':
       return updateSample(state, action.sampleId, (s) => ({ ...s, collapsed: action.value }))
     case 'update-dot':

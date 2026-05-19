@@ -68,7 +68,16 @@ function SampleBody({ sample }: { sample: Sample }) {
           step={0.01}
           format={(v) => `${Math.round(v * 100)}%`}
           onChange={(v) => dispatch({ type: 'set-volume', sampleId: sample.id, value: v })}
-          className="col-span-2"
+        />
+        <LabeledSlider
+          label="Sidechain"
+          value={sample.sidechain}
+          min={0}
+          max={1}
+          step={0.01}
+          disabled={sample.type === 'kick'}
+          format={(v) => `${Math.round(v * 100)}%`}
+          onChange={(v) => dispatch({ type: 'set-sidechain', sampleId: sample.id, value: v })}
         />
         <LabeledSlider
           label="Repetitions"

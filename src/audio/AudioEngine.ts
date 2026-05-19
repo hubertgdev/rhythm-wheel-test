@@ -11,7 +11,11 @@ type GetState = () => SequenceState
 type SynthEntry = {
   synth: Synth
   volume: GainNode
+  duck: GainNode
 }
+
+const SIDECHAIN_ATTACK = 0.005
+const SIDECHAIN_RELEASE = 0.18
 
 const createSynthFor = (ctx: AudioContext, sample: Sample): Synth => {
   switch (sample.type) {
@@ -83,6 +87,11 @@ export class AudioEngine {
     } catch {
       // ignore
     }
+    try {
+      entry.duck.disconnect()
+    } catch {
+      // ignore
+    }
   }
 
   private syncSynths() {
@@ -104,9 +113,12 @@ export class AudioEngine {
         const synth = createSynthFor(this.ctx, sample)
         const volume = this.ctx.createGain()
         volume.gain.value = sample.volume
+        const duck = this.ctx.createGain()
+        duck.gain.value = 1
         synth.connect(volume)
-        volume.connect(this.master)
-        entry = { synth, volume }
+        volume.connect(duck)
+        duck.connect(this.master)
+        entry = { synth, volume, duck }
         this.entries.set(sample.id, entry)
         this.synthTypes.set(sample.id, sample.type)
       } else {
@@ -161,6 +173,22 @@ export class AudioEngine {
     if (entry) entry.synth.trigger(this.ctx.currentTime + 0.01, velocity)
   }
 
+  private scheduleDuck(time: number) {
+    const state = this.getState()
+    for (const sample of state.samples) {
+      if (sample.type === 'kick') continue
+      if (sample.sidechain <= 0) continue
+      const entry = this.entries.get(sample.id)
+      if (!entry) continue
+      const depth = Math.max(0.0001, 1 - sample.sidechain)
+      const gain = entry.duck.gain
+      gain.cancelScheduledValues(time)
+      gain.setValueAtTime(1, time)
+      gain.linearRampToValueAtTime(depth, time + SIDECHAIN_ATTACK)
+      gain.exponentialRampToValueAtTime(1, time + SIDECHAIN_ATTACK + SIDECHAIN_RELEASE)
+    }
+  }
+
   private tick() {
     if (!this.ctx || !this.isPlaying) return
     this.syncSynths()
@@ -172,6 +200,7 @@ export class AudioEngine {
     for (const sample of state.samples) {
       const entry = this.entries.get(sample.id)
       if (!entry) continue
+      const isKick = sample.type === 'kick'
       for (const dot of sample.dots) {
         let t = this.startTime + dot.position * loopDuration
         if (t < this.scheduledUpTo) {
@@ -180,6 +209,7 @@ export class AudioEngine {
         }
         while (t <= horizon) {
           entry.synth.trigger(t, 1)
+          if (isKick) this.scheduleDuck(t)
           t += loopDuration
         }
       }

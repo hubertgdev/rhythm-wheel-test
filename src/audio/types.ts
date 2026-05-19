@@ -127,6 +127,7 @@ type SampleBase = {
   even: boolean
   swing: number
   volume: number
+  sidechain: number
   collapsed: boolean
 }
 
