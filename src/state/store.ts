@@ -39,6 +39,7 @@ export const initialState: SequenceState = {
       repetitions: 4,
       dots: evenDots(4),
       snap: true,
+      even: true,
     },
     {
       id: 'clap',
@@ -48,6 +49,7 @@ export const initialState: SequenceState = {
       repetitions: 2,
       dots: dotsAt([0.25, 0.75]),
       snap: true,
+      even: false,
     },
   ],
 }
@@ -59,7 +61,7 @@ export type Action =
   | { type: 'set-sample-params'; sampleId: string; params: Partial<KickParams> | Partial<ClapParams> }
   | { type: 'set-repetitions'; sampleId: string; value: number }
   | { type: 'set-snap'; sampleId: string; value: boolean }
-  | { type: 'redistribute-dots'; sampleId: string }
+  | { type: 'set-even'; sampleId: string; value: boolean }
   | { type: 'update-dot'; sampleId: string; dotId: string; position?: number; velocity?: number }
 
 const updateSample = (state: SequenceState, sampleId: string, fn: (s: Sample) => Sample): SequenceState => ({
@@ -84,6 +86,9 @@ export function reducer(state: SequenceState, action: Action): SequenceState {
     case 'set-repetitions': {
       const value = clamp(Math.round(action.value), 0, 32)
       return updateSample(state, action.sampleId, (s) => {
+        if (s.even) {
+          return { ...s, repetitions: value, dots: evenDots(value, s.dots) }
+        }
         const dots = [...s.dots]
         if (value > dots.length) {
           for (let i = dots.length; i < value; i++) {
@@ -97,24 +102,42 @@ export function reducer(state: SequenceState, action: Action): SequenceState {
     }
     case 'set-snap':
       return updateSample(state, action.sampleId, (s) => ({ ...s, snap: action.value }))
-    case 'redistribute-dots':
-      return updateSample(state, action.sampleId, (s) => ({
-        ...s,
-        dots: evenDots(s.repetitions, s.dots),
-      }))
+    case 'set-even':
+      return updateSample(state, action.sampleId, (s) =>
+        action.value ? { ...s, even: true, dots: evenDots(s.repetitions, s.dots) } : { ...s, even: false },
+      )
     case 'update-dot':
-      return updateSample(state, action.sampleId, (s) => ({
-        ...s,
-        dots: s.dots.map((d) =>
-          d.id === action.dotId
-            ? {
-                ...d,
-                position: action.position !== undefined ? wrap01(action.position) : d.position,
-                velocity: action.velocity !== undefined ? clamp(action.velocity, 0.05, 1) : d.velocity,
-              }
-            : d,
-        ),
-      }))
+      return updateSample(state, action.sampleId, (s) => {
+        if (s.even && action.position !== undefined) {
+          const dragged = s.dots.find((d) => d.id === action.dotId)
+          if (!dragged) return s
+          const newPos = wrap01(action.position)
+          let delta = newPos - dragged.position
+          if (delta > 0.5) delta -= 1
+          if (delta < -0.5) delta += 1
+          return {
+            ...s,
+            dots: s.dots.map((d) => ({
+              ...d,
+              position: wrap01(d.position + delta),
+              velocity:
+                d.id === action.dotId && action.velocity !== undefined ? clamp(action.velocity, 0.05, 1) : d.velocity,
+            })),
+          }
+        }
+        return {
+          ...s,
+          dots: s.dots.map((d) =>
+            d.id === action.dotId
+              ? {
+                  ...d,
+                  position: action.position !== undefined ? wrap01(action.position) : d.position,
+                  velocity: action.velocity !== undefined ? clamp(action.velocity, 0.05, 1) : d.velocity,
+                }
+              : d,
+          ),
+        }
+      })
   }
 }
 

@@ -48,6 +48,7 @@ type SampleBase = {
   repetitions: number
   dots: Dot[]
   snap: boolean
+  even: boolean
 }
 
 export type KickSample = SampleBase & { type: 'kick'; params: KickParams }

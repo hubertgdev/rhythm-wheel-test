@@ -1,4 +1,4 @@
-import { Play, RotateCw } from 'lucide-react'
+import { Play } from 'lucide-react'
 import type { AudioEngine } from '@/audio/AudioEngine'
 import type { ClapSample, KickSample, Sample } from '@/audio/types'
 import { LabeledSlider } from '@/components/LabeledSlider'
@@ -35,16 +35,15 @@ export function SampleControls({ sample, engine }: Props) {
           max={32}
           onChange={(v) => dispatch({ type: 'set-repetitions', sampleId: sample.id, value: v })}
         />
-        <div className="flex items-end gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            onClick={() => dispatch({ type: 'redistribute-dots', sampleId: sample.id })}
-          >
-            <RotateCw />
+        <div className="flex items-end gap-4 pb-1">
+          <label className="flex h-7 items-center gap-1.5 text-xs select-none">
+            <input
+              type="checkbox"
+              checked={sample.even}
+              onChange={(e) => dispatch({ type: 'set-even', sampleId: sample.id, value: e.target.checked })}
+            />
             Even
-          </Button>
+          </label>
           <label className="flex h-7 items-center gap-1.5 text-xs select-none">
             <input
               type="checkbox"
