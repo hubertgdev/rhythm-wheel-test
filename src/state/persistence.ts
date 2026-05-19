@@ -2,7 +2,7 @@ import type { Sample, SequenceState } from '@/audio/types'
 
 const STORAGE_KEY = 'rw-state-v1'
 const SCHEMA_VERSION = 1
-const VALID_TYPES: Sample['type'][] = ['kick', 'clap', 'hat-closed', 'hat-open']
+const VALID_TYPES: Sample['type'][] = ['kick', 'clap', 'hat-closed', 'hat-open', 'synth-a', 'synth-b']
 
 type Persisted = {
   version: number

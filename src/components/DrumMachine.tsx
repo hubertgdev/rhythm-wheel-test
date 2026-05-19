@@ -8,7 +8,7 @@ import { TransportBar } from '@/components/TransportBar'
 import { Button } from '@/components/ui/button'
 import { Wheel } from '@/components/Wheel'
 import { exportToFile, importFromFile, saveToLocalStorage } from '@/state/persistence'
-import { useStore } from '@/state/store'
+import { mergeWithDefaults, useStore } from '@/state/store'
 
 const AUTOSAVE_DEBOUNCE_MS = 500
 
@@ -52,7 +52,7 @@ export function DrumMachine() {
       return
     }
     engine.stop()
-    dispatch({ type: 'load-state', state: loaded })
+    dispatch({ type: 'load-state', state: mergeWithDefaults(loaded) })
   }
 
   return (

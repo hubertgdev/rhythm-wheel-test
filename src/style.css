@@ -76,6 +76,8 @@
   --rw-sample-kick: oklch(0.55 0.18 255);
   --rw-sample-clap: oklch(0.62 0.17 25);
   --rw-sample-hat: oklch(0.55 0.1 145);
+  --rw-sample-synth-a: oklch(0.55 0.16 300);
+  --rw-sample-synth-b: oklch(0.68 0.14 90);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -119,6 +121,8 @@
   --rw-sample-kick: oklch(0.78 0.13 190);
   --rw-sample-clap: oklch(0.8 0.13 55);
   --rw-sample-hat: oklch(0.82 0.11 145);
+  --rw-sample-synth-a: oklch(0.78 0.13 300);
+  --rw-sample-synth-b: oklch(0.85 0.13 95);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -198,6 +202,12 @@
   stroke: var(--rw-sample-color);
   stroke-width: 2.5;
 }
+.rw-sample-synth-a {
+  --rw-sample-color: var(--rw-sample-synth-a);
+}
+.rw-sample-synth-b {
+  --rw-sample-color: var(--rw-sample-synth-b);
+}
 .rw-dot-hit {
   fill: transparent;
   cursor: grab;
@@ -268,4 +278,20 @@
 }
 .rw-slider:focus-visible::-moz-range-thumb {
   box-shadow: 0 0 0 4px color-mix(in oklch, var(--rw-accent) 35%, transparent);
+}
+
+.rw-select {
+  width: 100%;
+  height: 28px;
+  padding: 0 0.5rem;
+  border-radius: 8px;
+  background: var(--muted);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  font-size: 0.8125rem;
+}
+.rw-select:focus-visible {
+  outline: none;
+  border-color: var(--rw-accent);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--rw-accent) 35%, transparent);
 }

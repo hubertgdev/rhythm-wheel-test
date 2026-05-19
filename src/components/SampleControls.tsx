@@ -1,9 +1,17 @@
 import { Play } from 'lucide-react'
 import type { AudioEngine } from '@/audio/AudioEngine'
-import type { ClapSample, HatSample, KickSample, Sample } from '@/audio/types'
+import type { ClapSample, HatSample, KickSample, Sample, SynthSample, WaveType } from '@/audio/types'
+import { LabeledSelect } from '@/components/LabeledSelect'
 import { LabeledSlider } from '@/components/LabeledSlider'
 import { Button } from '@/components/ui/button'
 import { useStore } from '@/state/store'
+
+const WAVE_OPTIONS: { value: WaveType; label: string }[] = [
+  { value: 'sine', label: 'Sine' },
+  { value: 'triangle', label: 'Triangle' },
+  { value: 'square', label: 'Square' },
+  { value: 'sawtooth', label: 'Saw' },
+]
 
 type Props = {
   sample: Sample
@@ -65,15 +73,24 @@ export function SampleControls({ sample, engine }: Props) {
         </div>
       </div>
 
-      {sample.type === 'kick' ? (
-        <KickKnobs sample={sample} />
-      ) : sample.type === 'clap' ? (
-        <ClapKnobs sample={sample} />
-      ) : (
-        <HatKnobs sample={sample} />
-      )}
+      <KnobsForSample sample={sample} />
     </section>
   )
+}
+
+function KnobsForSample({ sample }: { sample: Sample }) {
+  switch (sample.type) {
+    case 'kick':
+      return <KickKnobs sample={sample} />
+    case 'clap':
+      return <ClapKnobs sample={sample} />
+    case 'hat-closed':
+    case 'hat-open':
+      return <HatKnobs sample={sample} />
+    case 'synth-a':
+    case 'synth-b':
+      return <SynthKnobs sample={sample} />
+  }
 }
 
 function KickKnobs({ sample }: { sample: KickSample }) {
@@ -263,6 +280,62 @@ function HatKnobs({ sample }: { sample: HatSample }) {
         step={0.005}
         format={(v) => `${(v * 1000).toFixed(0)} ms`}
         onChange={(v) => set({ decay: v })}
+      />
+    </div>
+  )
+}
+
+function SynthKnobs({ sample }: { sample: SynthSample }) {
+  const { dispatch } = useStore()
+  const p = sample.params
+  const set = (params: Partial<typeof p>) => dispatch({ type: 'set-sample-params', sampleId: sample.id, params })
+  return (
+    <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+      <LabeledSelect label="Wave" value={p.wave} options={WAVE_OPTIONS} onChange={(v) => set({ wave: v })} />
+      <LabeledSlider
+        label="Pitch"
+        value={p.pitch}
+        min={30}
+        max={2000}
+        step={1}
+        format={(v) => `${v.toFixed(0)} Hz`}
+        onChange={(v) => set({ pitch: v })}
+      />
+      <LabeledSlider
+        label="Attack"
+        value={p.attack}
+        min={0.001}
+        max={1}
+        step={0.001}
+        format={(v) => `${(v * 1000).toFixed(0)} ms`}
+        onChange={(v) => set({ attack: v })}
+      />
+      <LabeledSlider
+        label="Release"
+        value={p.release}
+        min={0.02}
+        max={3}
+        step={0.01}
+        format={(v) => `${v.toFixed(2)} s`}
+        onChange={(v) => set({ release: v })}
+      />
+      <LabeledSlider
+        label="Cutoff"
+        value={p.cutoff}
+        min={80}
+        max={10000}
+        step={20}
+        format={(v) => (v >= 1000 ? `${(v / 1000).toFixed(1)} kHz` : `${v.toFixed(0)} Hz`)}
+        onChange={(v) => set({ cutoff: v })}
+      />
+      <LabeledSlider
+        label="Resonance"
+        value={p.resonance}
+        min={0.1}
+        max={12}
+        step={0.05}
+        format={(v) => `Q ${v.toFixed(2)}`}
+        onChange={(v) => set({ resonance: v })}
       />
     </div>
   )

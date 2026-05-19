@@ -61,13 +61,42 @@ export const DEFAULT_OPEN_HAT_PARAMS: HatParams = {
   decay: 0.42,
 }
 
+export type WaveType = 'sine' | 'square' | 'sawtooth' | 'triangle'
+
+export type SynthParams = {
+  wave: WaveType
+  pitch: number
+  attack: number
+  release: number
+  cutoff: number
+  resonance: number
+}
+
+export const DEFAULT_SYNTH_A_PARAMS: SynthParams = {
+  wave: 'square',
+  pitch: 220,
+  attack: 0.005,
+  release: 0.35,
+  cutoff: 1800,
+  resonance: 1.2,
+}
+
+export const DEFAULT_SYNTH_B_PARAMS: SynthParams = {
+  wave: 'sawtooth',
+  pitch: 440,
+  attack: 0.05,
+  release: 0.9,
+  cutoff: 2600,
+  resonance: 1.6,
+}
+
 export type Dot = {
   id: string
   position: number
   velocity: number
 }
 
-export type SampleType = 'kick' | 'clap' | 'hat-closed' | 'hat-open'
+export type SampleType = 'kick' | 'clap' | 'hat-closed' | 'hat-open' | 'synth-a' | 'synth-b'
 
 type SampleBase = {
   id: string
@@ -82,7 +111,8 @@ type SampleBase = {
 export type KickSample = SampleBase & { type: 'kick'; params: KickParams }
 export type ClapSample = SampleBase & { type: 'clap'; params: ClapParams }
 export type HatSample = SampleBase & { type: 'hat-closed' | 'hat-open'; params: HatParams }
-export type Sample = KickSample | ClapSample | HatSample
+export type SynthSample = SampleBase & { type: 'synth-a' | 'synth-b'; params: SynthParams }
+export type Sample = KickSample | ClapSample | HatSample | SynthSample
 
 export type SequenceState = {
   bpm: number

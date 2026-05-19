@@ -5,10 +5,13 @@ import {
   DEFAULT_CLOSED_HAT_PARAMS,
   DEFAULT_KICK_PARAMS,
   DEFAULT_OPEN_HAT_PARAMS,
+  DEFAULT_SYNTH_A_PARAMS,
+  DEFAULT_SYNTH_B_PARAMS,
   type HatParams,
   type KickParams,
   type Sample,
   type SequenceState,
+  type SynthParams,
 } from '@/audio/types'
 
 let dotCounter = 0
@@ -85,7 +88,42 @@ export const initialState: SequenceState = {
       even: false,
       swing: 0,
     },
+    {
+      id: 'synth-a',
+      name: 'Synth A',
+      type: 'synth-a',
+      params: { ...DEFAULT_SYNTH_A_PARAMS },
+      repetitions: 0,
+      dots: [],
+      snap: true,
+      even: false,
+      swing: 0,
+    },
+    {
+      id: 'synth-b',
+      name: 'Synth B',
+      type: 'synth-b',
+      params: { ...DEFAULT_SYNTH_B_PARAMS },
+      repetitions: 0,
+      dots: [],
+      snap: true,
+      even: false,
+      swing: 0,
+    },
   ],
+}
+
+export function mergeWithDefaults(loaded: SequenceState): SequenceState {
+  const loadedById = new Map(loaded.samples.map((s) => [s.id, s]))
+  const samples: Sample[] = []
+  for (const def of initialState.samples) {
+    samples.push(loadedById.get(def.id) ?? def)
+  }
+  const defaultIds = new Set(initialState.samples.map((s) => s.id))
+  for (const s of loaded.samples) {
+    if (!defaultIds.has(s.id)) samples.push(s)
+  }
+  return { ...loaded, samples }
 }
 
 export type Action =
@@ -95,7 +133,7 @@ export type Action =
   | {
       type: 'set-sample-params'
       sampleId: string
-      params: Partial<KickParams> | Partial<ClapParams> | Partial<HatParams>
+      params: Partial<KickParams> | Partial<ClapParams> | Partial<HatParams> | Partial<SynthParams>
     }
   | { type: 'set-repetitions'; sampleId: string; value: number }
   | { type: 'set-snap'; sampleId: string; value: boolean }
