@@ -7,6 +7,11 @@ import type { Sample, SequenceState } from './types'
 type Synth = KickSynth | ClapSynth | HatSynth | MonoSynth
 type GetState = () => SequenceState
 
+type SynthEntry = {
+  synth: Synth
+  volume: GainNode
+}
+
 const createSynthFor = (ctx: AudioContext, sample: Sample): Synth => {
   switch (sample.type) {
     case 'kick':
@@ -34,10 +39,12 @@ const applyParams = (synth: Synth, sample: Sample) => {
   }
 }
 
+const VOLUME_SMOOTHING_TAU = 0.02
+
 export class AudioEngine {
   private ctx: AudioContext | null = null
   private master: GainNode | null = null
-  private synths: Map<string, Synth> = new Map()
+  private entries: Map<string, SynthEntry> = new Map()
   private synthTypes: Map<string, Sample['type']> = new Map()
   private timer: number | null = null
   private getState: GetState
@@ -64,33 +71,48 @@ export class AudioEngine {
     }
   }
 
+  private disposeEntry(entry: SynthEntry) {
+    entry.synth.dispose()
+    try {
+      entry.volume.disconnect()
+    } catch {
+      // ignore
+    }
+  }
+
   private syncSynths() {
     if (!this.ctx || !this.master) return
     const state = this.getState()
+    const now = this.ctx.currentTime
     const seen = new Set<string>()
     for (const sample of state.samples) {
       seen.add(sample.id)
-      let synth = this.synths.get(sample.id)
+      let entry = this.entries.get(sample.id)
       const currentType = this.synthTypes.get(sample.id)
-      if (synth && currentType !== sample.type) {
-        synth.dispose()
-        synth = undefined
-        this.synths.delete(sample.id)
+      if (entry && currentType !== sample.type) {
+        this.disposeEntry(entry)
+        entry = undefined
+        this.entries.delete(sample.id)
         this.synthTypes.delete(sample.id)
       }
-      if (!synth) {
-        synth = createSynthFor(this.ctx, sample)
-        synth.connect(this.master)
-        this.synths.set(sample.id, synth)
+      if (!entry) {
+        const synth = createSynthFor(this.ctx, sample)
+        const volume = this.ctx.createGain()
+        volume.gain.value = sample.volume
+        synth.connect(volume)
+        volume.connect(this.master)
+        entry = { synth, volume }
+        this.entries.set(sample.id, entry)
         this.synthTypes.set(sample.id, sample.type)
       } else {
-        applyParams(synth, sample)
+        applyParams(entry.synth, sample)
+        entry.volume.gain.setTargetAtTime(sample.volume, now, VOLUME_SMOOTHING_TAU)
       }
     }
-    for (const [id, synth] of this.synths) {
+    for (const [id, entry] of this.entries) {
       if (!seen.has(id)) {
-        synth.dispose()
-        this.synths.delete(id)
+        this.disposeEntry(entry)
+        this.entries.delete(id)
         this.synthTypes.delete(id)
       }
     }
@@ -130,8 +152,8 @@ export class AudioEngine {
     this.ensureContext()
     this.syncSynths()
     if (!this.ctx) return
-    const synth = this.synths.get(sampleId)
-    if (synth) synth.trigger(this.ctx.currentTime + 0.01, velocity)
+    const entry = this.entries.get(sampleId)
+    if (entry) entry.synth.trigger(this.ctx.currentTime + 0.01, velocity)
   }
 
   private tick() {
@@ -143,8 +165,8 @@ export class AudioEngine {
     if (loopDuration <= 0) return
 
     for (const sample of state.samples) {
-      const synth = this.synths.get(sample.id)
-      if (!synth) continue
+      const entry = this.entries.get(sample.id)
+      if (!entry) continue
       for (const dot of sample.dots) {
         let t = this.startTime + dot.position * loopDuration
         if (t < this.scheduledUpTo) {
@@ -152,7 +174,7 @@ export class AudioEngine {
           t += k * loopDuration
         }
         while (t <= horizon) {
-          synth.trigger(t, dot.velocity)
+          entry.synth.trigger(t, dot.velocity)
           t += loopDuration
         }
       }
@@ -162,8 +184,8 @@ export class AudioEngine {
 
   dispose() {
     this.stop()
-    for (const synth of this.synths.values()) synth.dispose()
-    this.synths.clear()
+    for (const entry of this.entries.values()) this.disposeEntry(entry)
+    this.entries.clear()
     if (this.master) {
       try {
         this.master.disconnect()

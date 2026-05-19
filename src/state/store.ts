@@ -55,6 +55,7 @@ export const initialState: SequenceState = {
       snap: true,
       even: true,
       swing: 0,
+      volume: 1,
     },
     {
       id: 'clap',
@@ -66,6 +67,7 @@ export const initialState: SequenceState = {
       snap: true,
       even: false,
       swing: 0,
+      volume: 0.55,
     },
     {
       id: 'hat-closed',
@@ -77,6 +79,7 @@ export const initialState: SequenceState = {
       snap: true,
       even: true,
       swing: 0,
+      volume: 0.5,
     },
     {
       id: 'hat-open',
@@ -88,6 +91,7 @@ export const initialState: SequenceState = {
       snap: true,
       even: false,
       swing: 0,
+      volume: 0.5,
     },
     {
       id: 'synth-a',
@@ -99,6 +103,7 @@ export const initialState: SequenceState = {
       snap: true,
       even: false,
       swing: 0,
+      volume: 0.75,
     },
     {
       id: 'synth-b',
@@ -110,20 +115,28 @@ export const initialState: SequenceState = {
       snap: true,
       even: false,
       swing: 0,
+      volume: 0.7,
     },
   ],
 }
 
 const migrateSampleParams = (sample: Sample): Sample => {
-  if (sample.type !== 'synth-a' && sample.type !== 'synth-b') return sample
-  const p = sample.params as Partial<SynthParams> & { pitch?: number }
-  if (typeof p.note === 'number' && typeof p.octave === 'number') return sample
-  const { pitch, ...rest } = p
-  const fallback = typeof pitch === 'number' ? freqToNote(pitch) : { note: 0, octave: 3 }
-  return {
-    ...sample,
-    params: { ...rest, note: fallback.note, octave: fallback.octave } as SynthParams,
-  } as Sample
+  let next: Sample = sample
+  if (next.type === 'synth-a' || next.type === 'synth-b') {
+    const p = next.params as Partial<SynthParams> & { pitch?: number }
+    if (typeof p.note !== 'number' || typeof p.octave !== 'number') {
+      const { pitch, ...rest } = p
+      const fallback = typeof pitch === 'number' ? freqToNote(pitch) : { note: 0, octave: 3 }
+      next = {
+        ...next,
+        params: { ...rest, note: fallback.note, octave: fallback.octave } as SynthParams,
+      } as Sample
+    }
+  }
+  if (typeof (next as { volume?: number }).volume !== 'number') {
+    next = { ...next, volume: 1 } as Sample
+  }
+  return next
 }
 
 export function mergeWithDefaults(loaded: SequenceState): SequenceState {
@@ -152,6 +165,7 @@ export type Action =
   | { type: 'set-snap'; sampleId: string; value: boolean }
   | { type: 'set-even'; sampleId: string; value: boolean }
   | { type: 'set-swing'; sampleId: string; value: number }
+  | { type: 'set-volume'; sampleId: string; value: number }
   | { type: 'update-dot'; sampleId: string; dotId: string; position?: number; velocity?: number }
   | { type: 'load-state'; state: SequenceState }
 
@@ -205,6 +219,8 @@ export function reducer(state: SequenceState, action: Action): SequenceState {
         }
         return { ...s, swing }
       })
+    case 'set-volume':
+      return updateSample(state, action.sampleId, (s) => ({ ...s, volume: clamp(action.value, 0, 1) }))
     case 'update-dot':
       return updateSample(state, action.sampleId, (s) => {
         if (s.even && action.position !== undefined) {

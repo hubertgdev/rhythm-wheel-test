@@ -38,6 +38,16 @@ export function SampleControls({ sample, engine }: Props) {
 
       <div className="grid grid-cols-2 gap-x-3 gap-y-2">
         <LabeledSlider
+          label="Volume"
+          value={sample.volume}
+          min={0}
+          max={1}
+          step={0.01}
+          format={(v) => `${Math.round(v * 100)}%`}
+          onChange={(v) => dispatch({ type: 'set-volume', sampleId: sample.id, value: v })}
+          className="col-span-2"
+        />
+        <LabeledSlider
           label="Repetitions"
           value={sample.repetitions}
           min={0}

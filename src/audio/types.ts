@@ -109,6 +109,7 @@ type SampleBase = {
   snap: boolean
   even: boolean
   swing: number
+  volume: number
 }
 
 export type KickSample = SampleBase & { type: 'kick'; params: KickParams }
