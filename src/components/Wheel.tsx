@@ -7,8 +7,8 @@ import { useStore } from '@/state/store'
 const SIZE = 400
 const CENTER = SIZE / 2
 const R_TICK = 170
-const R_LAYER_OUTER = 155
-const R_LAYER_INNER = 55
+const R_LAYER_OUTER = 158
+const R_LAYER_INNER = 45
 
 const positionToAngle = (p: number) => p * Math.PI * 2 - Math.PI / 2
 const angleToPosition = (a: number) => {
@@ -136,6 +136,9 @@ export function Wheel({ engine, isPlaying }: Props) {
   const sweepY = CENTER + R_TICK * Math.sin(sweepAngle)
 
   const totalLayers = state.samples.length
+  const layerSpacing =
+    totalLayers > 1 ? (R_LAYER_OUTER - R_LAYER_INNER) / (totalLayers - 1) : R_LAYER_OUTER - R_LAYER_INNER
+  const baseDotR = Math.max(5, Math.min(9, layerSpacing * 0.42))
 
   return (
     <svg
@@ -179,7 +182,7 @@ export function Wheel({ engine, isPlaying }: Props) {
             const sinceLast = delta % loopDuration
             if (sinceLast < 0.2) pulse = 1 - sinceLast / 0.2
           }
-          const dotRadius = 9 + pulse * 6
+          const dotRadius = baseDotR + pulse * (baseDotR * 0.7)
           return (
             <g key={dot.id} className={`rw-sample-${sample.type}`}>
               <circle

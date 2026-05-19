@@ -34,6 +34,24 @@ export const DEFAULT_CLAP_PARAMS: ClapParams = {
   mix: 0.4,
 }
 
+export type SnareParams = {
+  tone: number
+  pitchEnv: number
+  body: number
+  noise: number
+  tail: number
+  color: number
+}
+
+export const DEFAULT_SNARE_PARAMS: SnareParams = {
+  tone: 200,
+  pitchEnv: 0.3,
+  body: 0.12,
+  noise: 0.65,
+  tail: 0.18,
+  color: 1500,
+}
+
 export type HatParams = {
   tone: number
   color: number
@@ -98,7 +116,7 @@ export type Dot = {
   position: number
 }
 
-export type SampleType = 'kick' | 'clap' | 'hat-closed' | 'hat-open' | 'synth-a' | 'synth-b'
+export type SampleType = 'kick' | 'clap' | 'snare' | 'hat-closed' | 'hat-open' | 'synth-a' | 'synth-b'
 
 type SampleBase = {
   id: string
@@ -109,13 +127,15 @@ type SampleBase = {
   even: boolean
   swing: number
   volume: number
+  collapsed: boolean
 }
 
 export type KickSample = SampleBase & { type: 'kick'; params: KickParams }
 export type ClapSample = SampleBase & { type: 'clap'; params: ClapParams }
+export type SnareSample = SampleBase & { type: 'snare'; params: SnareParams }
 export type HatSample = SampleBase & { type: 'hat-closed' | 'hat-open'; params: HatParams }
 export type SynthSample = SampleBase & { type: 'synth-a' | 'synth-b'; params: SynthParams }
-export type Sample = KickSample | ClapSample | HatSample | SynthSample
+export type Sample = KickSample | ClapSample | SnareSample | HatSample | SynthSample
 
 export type SequenceState = {
   bpm: number

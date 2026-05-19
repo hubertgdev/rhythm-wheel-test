@@ -6,12 +6,14 @@ import {
   DEFAULT_CLOSED_HAT_PARAMS,
   DEFAULT_KICK_PARAMS,
   DEFAULT_OPEN_HAT_PARAMS,
+  DEFAULT_SNARE_PARAMS,
   DEFAULT_SYNTH_A_PARAMS,
   DEFAULT_SYNTH_B_PARAMS,
   type HatParams,
   type KickParams,
   type Sample,
   type SequenceState,
+  type SnareParams,
   type SynthParams,
 } from '@/audio/types'
 
@@ -54,6 +56,7 @@ export const initialState: SequenceState = {
       even: true,
       swing: 0,
       volume: 1,
+      collapsed: false,
     },
     {
       id: 'clap',
@@ -66,6 +69,20 @@ export const initialState: SequenceState = {
       even: false,
       swing: 0,
       volume: 0.55,
+      collapsed: false,
+    },
+    {
+      id: 'snare',
+      name: 'Snare',
+      type: 'snare',
+      params: { ...DEFAULT_SNARE_PARAMS },
+      repetitions: 0,
+      dots: [],
+      snap: true,
+      even: false,
+      swing: 0,
+      volume: 0.7,
+      collapsed: false,
     },
     {
       id: 'hat-closed',
@@ -78,6 +95,7 @@ export const initialState: SequenceState = {
       even: true,
       swing: 0,
       volume: 0.5,
+      collapsed: false,
     },
     {
       id: 'hat-open',
@@ -90,6 +108,7 @@ export const initialState: SequenceState = {
       even: false,
       swing: 0,
       volume: 0.5,
+      collapsed: false,
     },
     {
       id: 'synth-a',
@@ -102,6 +121,7 @@ export const initialState: SequenceState = {
       even: false,
       swing: 0,
       volume: 0.75,
+      collapsed: true,
     },
     {
       id: 'synth-b',
@@ -114,6 +134,7 @@ export const initialState: SequenceState = {
       even: false,
       swing: 0,
       volume: 0.7,
+      collapsed: true,
     },
   ],
 }
@@ -133,6 +154,9 @@ const migrateSampleParams = (sample: Sample): Sample => {
   }
   if (typeof (next as { volume?: number }).volume !== 'number') {
     next = { ...next, volume: 1 } as Sample
+  }
+  if (typeof (next as { collapsed?: boolean }).collapsed !== 'boolean') {
+    next = { ...next, collapsed: false } as Sample
   }
   return next
 }
@@ -157,13 +181,19 @@ export type Action =
   | {
       type: 'set-sample-params'
       sampleId: string
-      params: Partial<KickParams> | Partial<ClapParams> | Partial<HatParams> | Partial<SynthParams>
+      params:
+        | Partial<KickParams>
+        | Partial<ClapParams>
+        | Partial<SnareParams>
+        | Partial<HatParams>
+        | Partial<SynthParams>
     }
   | { type: 'set-repetitions'; sampleId: string; value: number }
   | { type: 'set-snap'; sampleId: string; value: boolean }
   | { type: 'set-even'; sampleId: string; value: boolean }
   | { type: 'set-swing'; sampleId: string; value: number }
   | { type: 'set-volume'; sampleId: string; value: number }
+  | { type: 'set-collapsed'; sampleId: string; value: boolean }
   | { type: 'update-dot'; sampleId: string; dotId: string; position: number }
   | { type: 'load-state'; state: SequenceState }
 
@@ -219,6 +249,8 @@ export function reducer(state: SequenceState, action: Action): SequenceState {
       })
     case 'set-volume':
       return updateSample(state, action.sampleId, (s) => ({ ...s, volume: clamp(action.value, 0, 1) }))
+    case 'set-collapsed':
+      return updateSample(state, action.sampleId, (s) => ({ ...s, collapsed: action.value }))
     case 'update-dot':
       return updateSample(state, action.sampleId, (s) => {
         const newPos = wrap01(action.position)

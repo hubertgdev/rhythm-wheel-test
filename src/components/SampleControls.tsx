@@ -1,7 +1,7 @@
-import { Play } from 'lucide-react'
+import { ChevronDown, ChevronRight, Play } from 'lucide-react'
 import type { AudioEngine } from '@/audio/AudioEngine'
 import { NOTE_NAMES } from '@/audio/MonoSynth'
-import type { ClapSample, HatSample, KickSample, Sample, SynthSample, WaveType } from '@/audio/types'
+import type { ClapSample, HatSample, KickSample, Sample, SnareSample, SynthSample, WaveType } from '@/audio/types'
 import { LabeledSelect } from '@/components/LabeledSelect'
 import { LabeledSlider } from '@/components/LabeledSlider'
 import { Button } from '@/components/ui/button'
@@ -21,21 +21,44 @@ type Props = {
 
 export function SampleControls({ sample, engine }: Props) {
   const { dispatch } = useStore()
+  const collapsed = sample.collapsed
   return (
     <section
       className={`rw-sample rw-sample-${sample.type} flex flex-col gap-3 rounded-xl border border-border bg-card p-3`}
     >
       <header className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+        <button
+          type="button"
+          aria-expanded={!collapsed}
+          onClick={() => dispatch({ type: 'set-collapsed', sampleId: sample.id, value: !collapsed })}
+          className="flex flex-1 items-center gap-2 -m-1 p-1 text-left rounded-md hover:bg-muted/50 transition-colors"
+        >
+          {collapsed ? (
+            <ChevronRight className="size-4 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="size-4 text-muted-foreground" />
+          )}
           <span className="rw-accent-dot" />
           <h2 className="text-sm font-medium">{sample.name}</h2>
-        </div>
+          {collapsed && sample.dots.length > 0 && (
+            <span className="ml-1 text-xs text-muted-foreground">· {sample.dots.length}</span>
+          )}
+        </button>
         <Button variant="outline" size="sm" onClick={() => engine?.triggerPreview(sample.id)}>
           <Play />
           Audition
         </Button>
       </header>
 
+      {collapsed ? null : <SampleBody sample={sample} />}
+    </section>
+  )
+}
+
+function SampleBody({ sample }: { sample: Sample }) {
+  const { dispatch } = useStore()
+  return (
+    <>
       <div className="grid grid-cols-2 gap-x-3 gap-y-2">
         <LabeledSlider
           label="Volume"
@@ -85,7 +108,7 @@ export function SampleControls({ sample, engine }: Props) {
       </div>
 
       <KnobsForSample sample={sample} />
-    </section>
+    </>
   )
 }
 
@@ -95,6 +118,8 @@ function KnobsForSample({ sample }: { sample: Sample }) {
       return <KickKnobs sample={sample} />
     case 'clap':
       return <ClapKnobs sample={sample} />
+    case 'snare':
+      return <SnareKnobs sample={sample} />
     case 'hat-closed':
     case 'hat-open':
       return <HatKnobs sample={sample} />
@@ -227,6 +252,70 @@ function ClapKnobs({ sample }: { sample: ClapSample }) {
         step={0.01}
         format={(v) => v.toFixed(2)}
         onChange={(v) => set({ mix: v })}
+      />
+    </div>
+  )
+}
+
+function SnareKnobs({ sample }: { sample: SnareSample }) {
+  const { dispatch } = useStore()
+  const p = sample.params
+  const set = (params: Partial<typeof p>) => dispatch({ type: 'set-sample-params', sampleId: sample.id, params })
+  return (
+    <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+      <LabeledSlider
+        label="Tone"
+        value={p.tone}
+        min={80}
+        max={400}
+        step={1}
+        format={(v) => `${v.toFixed(0)} Hz`}
+        onChange={(v) => set({ tone: v })}
+      />
+      <LabeledSlider
+        label="Pitch Env"
+        value={p.pitchEnv}
+        min={0}
+        max={1}
+        step={0.01}
+        format={(v) => v.toFixed(2)}
+        onChange={(v) => set({ pitchEnv: v })}
+      />
+      <LabeledSlider
+        label="Body"
+        value={p.body}
+        min={0.02}
+        max={0.4}
+        step={0.005}
+        format={(v) => `${(v * 1000).toFixed(0)} ms`}
+        onChange={(v) => set({ body: v })}
+      />
+      <LabeledSlider
+        label="Noise"
+        value={p.noise}
+        min={0}
+        max={1}
+        step={0.01}
+        format={(v) => v.toFixed(2)}
+        onChange={(v) => set({ noise: v })}
+      />
+      <LabeledSlider
+        label="Tail"
+        value={p.tail}
+        min={0.03}
+        max={0.6}
+        step={0.005}
+        format={(v) => `${(v * 1000).toFixed(0)} ms`}
+        onChange={(v) => set({ tail: v })}
+      />
+      <LabeledSlider
+        label="Color"
+        value={p.color}
+        min={500}
+        max={6000}
+        step={20}
+        format={(v) => (v >= 1000 ? `${(v / 1000).toFixed(1)} kHz` : `${v.toFixed(0)} Hz`)}
+        onChange={(v) => set({ color: v })}
       />
     </div>
   )
