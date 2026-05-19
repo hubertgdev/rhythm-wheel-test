@@ -111,12 +111,41 @@ export const DEFAULT_SYNTH_B_PARAMS: SynthParams = {
   resonance: 1.6,
 }
 
+export const DEFAULT_SYNTH_C_PARAMS: SynthParams = {
+  wave: 'triangle',
+  note: 0,
+  octave: 4,
+  attack: 0.25,
+  release: 1.5,
+  cutoff: 1400,
+  resonance: 0.7,
+}
+
+export const DEFAULT_SYNTH_D_PARAMS: SynthParams = {
+  wave: 'sine',
+  note: 0,
+  octave: 5,
+  attack: 0.003,
+  release: 0.5,
+  cutoff: 8000,
+  resonance: 0.6,
+}
+
 export type Dot = {
   id: string
   position: number
 }
 
-export type SampleType = 'kick' | 'clap' | 'snare' | 'hat-closed' | 'hat-open' | 'synth-a' | 'synth-b'
+export type SampleType =
+  | 'kick'
+  | 'clap'
+  | 'snare'
+  | 'hat-closed'
+  | 'hat-open'
+  | 'synth-a'
+  | 'synth-b'
+  | 'synth-c'
+  | 'synth-d'
 
 type SampleBase = {
   id: string
@@ -128,6 +157,8 @@ type SampleBase = {
   swing: number
   volume: number
   sidechain: number
+  muted: boolean
+  soloed: boolean
   collapsed: boolean
 }
 
@@ -135,7 +166,10 @@ export type KickSample = SampleBase & { type: 'kick'; params: KickParams }
 export type ClapSample = SampleBase & { type: 'clap'; params: ClapParams }
 export type SnareSample = SampleBase & { type: 'snare'; params: SnareParams }
 export type HatSample = SampleBase & { type: 'hat-closed' | 'hat-open'; params: HatParams }
-export type SynthSample = SampleBase & { type: 'synth-a' | 'synth-b'; params: SynthParams }
+export type SynthSample = SampleBase & {
+  type: 'synth-a' | 'synth-b' | 'synth-c' | 'synth-d'
+  params: SynthParams
+}
 export type Sample = KickSample | ClapSample | SnareSample | HatSample | SynthSample
 
 export type SequenceState = {

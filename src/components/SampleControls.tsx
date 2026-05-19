@@ -44,10 +44,30 @@ export function SampleControls({ sample, engine }: Props) {
             <span className="ml-1 text-xs text-muted-foreground">· {sample.dots.length}</span>
           )}
         </button>
-        <Button variant="outline" size="sm" onClick={() => engine?.triggerPreview(sample.id)}>
-          <Play />
-          Audition
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            variant={sample.muted ? 'destructive' : 'outline'}
+            size="icon-sm"
+            aria-pressed={sample.muted}
+            aria-label={sample.muted ? `Unmute ${sample.name}` : `Mute ${sample.name}`}
+            onClick={() => dispatch({ type: 'set-muted', sampleId: sample.id, value: !sample.muted })}
+          >
+            <span className="text-xs font-semibold">M</span>
+          </Button>
+          <Button
+            variant={sample.soloed ? 'default' : 'outline'}
+            size="icon-sm"
+            aria-pressed={sample.soloed}
+            aria-label={sample.soloed ? `Unsolo ${sample.name}` : `Solo ${sample.name}`}
+            onClick={() => dispatch({ type: 'set-soloed', sampleId: sample.id, value: !sample.soloed })}
+          >
+            <span className="text-xs font-semibold">S</span>
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => engine?.triggerPreview(sample.id)}>
+            <Play />
+            Audition
+          </Button>
+        </div>
       </header>
 
       {collapsed ? null : <SampleBody sample={sample} />}
@@ -134,6 +154,8 @@ function KnobsForSample({ sample }: { sample: Sample }) {
       return <HatKnobs sample={sample} />
     case 'synth-a':
     case 'synth-b':
+    case 'synth-c':
+    case 'synth-d':
       return <SynthKnobs sample={sample} />
   }
 }

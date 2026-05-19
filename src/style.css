@@ -79,6 +79,8 @@
   --rw-sample-hat: oklch(0.55 0.1 145);
   --rw-sample-synth-a: oklch(0.55 0.16 300);
   --rw-sample-synth-b: oklch(0.68 0.14 90);
+  --rw-sample-synth-c: oklch(0.6 0.13 175);
+  --rw-sample-synth-d: oklch(0.55 0.15 240);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -125,6 +127,8 @@
   --rw-sample-hat: oklch(0.82 0.11 145);
   --rw-sample-synth-a: oklch(0.78 0.13 300);
   --rw-sample-synth-b: oklch(0.85 0.13 95);
+  --rw-sample-synth-c: oklch(0.82 0.11 175);
+  --rw-sample-synth-d: oklch(0.78 0.13 240);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -212,6 +216,12 @@
 }
 .rw-sample-synth-b {
   --rw-sample-color: var(--rw-sample-synth-b);
+}
+.rw-sample-synth-c {
+  --rw-sample-color: var(--rw-sample-synth-c);
+}
+.rw-sample-synth-d {
+  --rw-sample-color: var(--rw-sample-synth-d);
 }
 .rw-dot-hit {
   fill: transparent;

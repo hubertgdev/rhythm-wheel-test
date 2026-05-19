@@ -9,6 +9,8 @@ import {
   DEFAULT_SNARE_PARAMS,
   DEFAULT_SYNTH_A_PARAMS,
   DEFAULT_SYNTH_B_PARAMS,
+  DEFAULT_SYNTH_C_PARAMS,
+  DEFAULT_SYNTH_D_PARAMS,
   type HatParams,
   type KickParams,
   type Sample,
@@ -57,6 +59,8 @@ export const initialState: SequenceState = {
       swing: 0,
       volume: 1,
       sidechain: 0,
+      muted: false,
+      soloed: false,
       collapsed: false,
     },
     {
@@ -71,6 +75,8 @@ export const initialState: SequenceState = {
       swing: 0,
       volume: 0.55,
       sidechain: 0,
+      muted: false,
+      soloed: false,
       collapsed: false,
     },
     {
@@ -85,6 +91,8 @@ export const initialState: SequenceState = {
       swing: 0,
       volume: 0.7,
       sidechain: 0,
+      muted: false,
+      soloed: false,
       collapsed: false,
     },
     {
@@ -99,6 +107,8 @@ export const initialState: SequenceState = {
       swing: 0,
       volume: 0.5,
       sidechain: 0,
+      muted: false,
+      soloed: false,
       collapsed: false,
     },
     {
@@ -113,6 +123,8 @@ export const initialState: SequenceState = {
       swing: 0,
       volume: 0.5,
       sidechain: 0,
+      muted: false,
+      soloed: false,
       collapsed: false,
     },
     {
@@ -127,6 +139,8 @@ export const initialState: SequenceState = {
       swing: 0,
       volume: 0.75,
       sidechain: 0,
+      muted: false,
+      soloed: false,
       collapsed: true,
     },
     {
@@ -141,14 +155,50 @@ export const initialState: SequenceState = {
       swing: 0,
       volume: 0.7,
       sidechain: 0,
+      muted: false,
+      soloed: false,
+      collapsed: true,
+    },
+    {
+      id: 'synth-c',
+      name: 'Synth C',
+      type: 'synth-c',
+      params: { ...DEFAULT_SYNTH_C_PARAMS },
+      repetitions: 0,
+      dots: [],
+      snap: true,
+      even: false,
+      swing: 0,
+      volume: 0.7,
+      sidechain: 0,
+      muted: false,
+      soloed: false,
+      collapsed: true,
+    },
+    {
+      id: 'synth-d',
+      name: 'Synth D',
+      type: 'synth-d',
+      params: { ...DEFAULT_SYNTH_D_PARAMS },
+      repetitions: 0,
+      dots: [],
+      snap: true,
+      even: false,
+      swing: 0,
+      volume: 0.6,
+      sidechain: 0,
+      muted: false,
+      soloed: false,
       collapsed: true,
     },
   ],
 }
 
+const SYNTH_TYPES: ReadonlySet<Sample['type']> = new Set(['synth-a', 'synth-b', 'synth-c', 'synth-d'])
+
 const migrateSampleParams = (sample: Sample): Sample => {
   let next: Sample = sample
-  if (next.type === 'synth-a' || next.type === 'synth-b') {
+  if (SYNTH_TYPES.has(next.type)) {
     const p = next.params as Partial<SynthParams> & { pitch?: number }
     if (typeof p.note !== 'number' || typeof p.octave !== 'number') {
       const { pitch, ...rest } = p
@@ -164,6 +214,12 @@ const migrateSampleParams = (sample: Sample): Sample => {
   }
   if (typeof (next as { sidechain?: number }).sidechain !== 'number') {
     next = { ...next, sidechain: 0 } as Sample
+  }
+  if (typeof (next as { muted?: boolean }).muted !== 'boolean') {
+    next = { ...next, muted: false } as Sample
+  }
+  if (typeof (next as { soloed?: boolean }).soloed !== 'boolean') {
+    next = { ...next, soloed: false } as Sample
   }
   if (typeof (next as { collapsed?: boolean }).collapsed !== 'boolean') {
     next = { ...next, collapsed: false } as Sample
@@ -204,6 +260,8 @@ export type Action =
   | { type: 'set-swing'; sampleId: string; value: number }
   | { type: 'set-volume'; sampleId: string; value: number }
   | { type: 'set-sidechain'; sampleId: string; value: number }
+  | { type: 'set-muted'; sampleId: string; value: boolean }
+  | { type: 'set-soloed'; sampleId: string; value: boolean }
   | { type: 'set-collapsed'; sampleId: string; value: boolean }
   | { type: 'update-dot'; sampleId: string; dotId: string; position: number }
   | { type: 'load-state'; state: SequenceState }
@@ -262,6 +320,10 @@ export function reducer(state: SequenceState, action: Action): SequenceState {
       return updateSample(state, action.sampleId, (s) => ({ ...s, volume: clamp(action.value, 0, 1) }))
     case 'set-sidechain':
       return updateSample(state, action.sampleId, (s) => ({ ...s, sidechain: clamp(action.value, 0, 1) }))
+    case 'set-muted':
+      return updateSample(state, action.sampleId, (s) => ({ ...s, muted: action.value }))
+    case 'set-soloed':
+      return updateSample(state, action.sampleId, (s) => ({ ...s, soloed: action.value }))
     case 'set-collapsed':
       return updateSample(state, action.sampleId, (s) => ({ ...s, collapsed: action.value }))
     case 'update-dot':
