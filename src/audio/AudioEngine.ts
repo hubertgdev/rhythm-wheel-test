@@ -174,7 +174,7 @@ export class AudioEngine {
           t += k * loopDuration
         }
         while (t <= horizon) {
-          entry.synth.trigger(t, dot.velocity)
+          entry.synth.trigger(t, 1)
           t += loopDuration
         }
       }

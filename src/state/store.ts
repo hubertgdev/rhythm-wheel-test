@@ -31,14 +31,12 @@ const evenDots = (count: number, swing: number, prev: Sample['dots'] = []): Samp
     out.push({
       id: prev[i]?.id ?? newDotId(),
       position: (base + offset) % 1,
-      velocity: prev[i]?.velocity ?? 0.8,
     })
   }
   return out
 }
 
-const dotsAt = (positions: number[]): Sample['dots'] =>
-  positions.map((position) => ({ id: newDotId(), position, velocity: 0.85 }))
+const dotsAt = (positions: number[]): Sample['dots'] => positions.map((position) => ({ id: newDotId(), position }))
 
 export const initialState: SequenceState = {
   bpm: 110,
@@ -166,7 +164,7 @@ export type Action =
   | { type: 'set-even'; sampleId: string; value: boolean }
   | { type: 'set-swing'; sampleId: string; value: number }
   | { type: 'set-volume'; sampleId: string; value: number }
-  | { type: 'update-dot'; sampleId: string; dotId: string; position?: number; velocity?: number }
+  | { type: 'update-dot'; sampleId: string; dotId: string; position: number }
   | { type: 'load-state'; state: SequenceState }
 
 const updateSample = (state: SequenceState, sampleId: string, fn: (s: Sample) => Sample): SequenceState => ({
@@ -197,7 +195,7 @@ export function reducer(state: SequenceState, action: Action): SequenceState {
         const dots = [...s.dots]
         if (value > dots.length) {
           for (let i = dots.length; i < value; i++) {
-            dots.push({ id: newDotId(), position: i / value, velocity: 0.8 })
+            dots.push({ id: newDotId(), position: i / value })
           }
         } else if (value < dots.length) {
           dots.length = value
@@ -223,34 +221,21 @@ export function reducer(state: SequenceState, action: Action): SequenceState {
       return updateSample(state, action.sampleId, (s) => ({ ...s, volume: clamp(action.value, 0, 1) }))
     case 'update-dot':
       return updateSample(state, action.sampleId, (s) => {
-        if (s.even && action.position !== undefined) {
+        const newPos = wrap01(action.position)
+        if (s.even) {
           const dragged = s.dots.find((d) => d.id === action.dotId)
           if (!dragged) return s
-          const newPos = wrap01(action.position)
           let delta = newPos - dragged.position
           if (delta > 0.5) delta -= 1
           if (delta < -0.5) delta += 1
           return {
             ...s,
-            dots: s.dots.map((d) => ({
-              ...d,
-              position: wrap01(d.position + delta),
-              velocity:
-                d.id === action.dotId && action.velocity !== undefined ? clamp(action.velocity, 0.05, 1) : d.velocity,
-            })),
+            dots: s.dots.map((d) => ({ ...d, position: wrap01(d.position + delta) })),
           }
         }
         return {
           ...s,
-          dots: s.dots.map((d) =>
-            d.id === action.dotId
-              ? {
-                  ...d,
-                  position: action.position !== undefined ? wrap01(action.position) : d.position,
-                  velocity: action.velocity !== undefined ? clamp(action.velocity, 0.05, 1) : d.velocity,
-                }
-              : d,
-          ),
+          dots: s.dots.map((d) => (d.id === action.dotId ? { ...d, position: newPos } : d)),
         }
       })
     case 'load-state':

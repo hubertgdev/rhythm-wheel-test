@@ -7,8 +7,8 @@ import { useStore } from '@/state/store'
 const SIZE = 400
 const CENTER = SIZE / 2
 const R_TICK = 170
-const R_MAX = 162
-const R_MIN = 22
+const R_LAYER_OUTER = 155
+const R_LAYER_INNER = 55
 
 const positionToAngle = (p: number) => p * Math.PI * 2 - Math.PI / 2
 const angleToPosition = (a: number) => {
@@ -17,10 +17,9 @@ const angleToPosition = (a: number) => {
   return p < 0 ? p + 1 : p
 }
 
-const dotXY = (p: number, v: number) => {
-  const r = Math.max(R_MIN, v * R_MAX)
-  const a = positionToAngle(p)
-  return { x: CENTER + r * Math.cos(a), y: CENTER + r * Math.sin(a), r }
+const layerRadius = (layerIndex: number, totalLayers: number): number => {
+  if (totalLayers <= 1) return R_LAYER_OUTER
+  return R_LAYER_OUTER - (R_LAYER_OUTER - R_LAYER_INNER) * (layerIndex / (totalLayers - 1))
 }
 
 const tickXY = (i: number, beats: number, inner: number, outer: number) => {
@@ -84,7 +83,6 @@ export function Wheel({ engine, isPlaying }: Props) {
     if (!pt) return
     const dx = pt.x - CENTER
     const dy = pt.y - CENTER
-    const dist = Math.hypot(dx, dy)
     const angle = Math.atan2(dy, dx)
     let position = angleToPosition(angle)
     if (drag.snap) {
@@ -92,8 +90,7 @@ export function Wheel({ engine, isPlaying }: Props) {
       position = Math.round(position / step) * step
       position = position % 1
     }
-    const velocity = Math.max(0.05, Math.min(1, dist / R_MAX))
-    dispatch({ type: 'update-dot', sampleId: drag.sampleId, dotId: drag.dotId, position, velocity })
+    dispatch({ type: 'update-dot', sampleId: drag.sampleId, dotId: drag.dotId, position })
   }
 
   const onPointerUp = (e: React.PointerEvent<SVGElement>) => {
@@ -138,6 +135,8 @@ export function Wheel({ engine, isPlaying }: Props) {
   const sweepX = CENTER + R_TICK * Math.cos(sweepAngle)
   const sweepY = CENTER + R_TICK * Math.sin(sweepAngle)
 
+  const totalLayers = state.samples.length
+
   return (
     <svg
       ref={svgRef}
@@ -150,13 +149,25 @@ export function Wheel({ engine, isPlaying }: Props) {
     >
       <title>Rhythm wheel sequencer</title>
       <circle cx={CENTER} cy={CENTER} r={R_TICK} className="rw-rim" />
+      {state.samples.map((sample, i) => (
+        <circle
+          key={`guide-${sample.id}`}
+          cx={CENTER}
+          cy={CENTER}
+          r={layerRadius(i, totalLayers)}
+          className={`rw-layer-guide rw-sample-${sample.type}`}
+        />
+      ))}
       {ticks}
       {clock.isPlaying && (
         <line x1={CENTER} y1={CENTER} x2={sweepX} y2={sweepY} className="rw-sweep" strokeLinecap="round" />
       )}
-      {state.samples.flatMap((sample) =>
-        sample.dots.map((dot) => {
-          const { x, y } = dotXY(dot.position, dot.velocity)
+      {state.samples.flatMap((sample, layerIndex) => {
+        const r = layerRadius(layerIndex, totalLayers)
+        return sample.dots.map((dot) => {
+          const a = positionToAngle(dot.position)
+          const x = CENTER + r * Math.cos(a)
+          const y = CENTER + r * Math.sin(a)
           const triggerTime = clock.startTime + dot.position * loopDuration
           let pulse = 0
           if (clock.isPlaying && loopDuration > 0) {
@@ -171,7 +182,6 @@ export function Wheel({ engine, isPlaying }: Props) {
           const dotRadius = 9 + pulse * 6
           return (
             <g key={dot.id} className={`rw-sample-${sample.type}`}>
-              <line x1={CENTER} y1={CENTER} x2={x} y2={y} className="rw-dot-line" strokeLinecap="round" />
               <circle
                 cx={x}
                 cy={y}
@@ -182,8 +192,8 @@ export function Wheel({ engine, isPlaying }: Props) {
               <circle cx={x} cy={y} r={dotRadius} className="rw-dot" style={{ opacity: 0.7 + pulse * 0.3 }} />
             </g>
           )
-        }),
-      )}
+        })
+      })}
       <circle cx={CENTER} cy={CENTER} r={3} className="rw-center" />
     </svg>
   )

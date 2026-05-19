@@ -96,7 +96,6 @@ export const DEFAULT_SYNTH_B_PARAMS: SynthParams = {
 export type Dot = {
   id: string
   position: number
-  velocity: number
 }
 
 export type SampleType = 'kick' | 'clap' | 'hat-closed' | 'hat-open' | 'synth-a' | 'synth-b'

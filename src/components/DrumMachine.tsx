@@ -89,7 +89,7 @@ export function DrumMachine() {
           <SampleControls key={sample.id} sample={sample} engine={engine} />
         ))}
         <p className="text-center text-xs text-muted-foreground">
-          Drag a dot to move it. Pull toward the rim for more velocity.
+          Each sample sits on its own ring. Drag a dot around the ring to move it; use Volume to set its level.
         </p>
       </main>
 

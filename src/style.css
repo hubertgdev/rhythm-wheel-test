@@ -216,10 +216,12 @@
 .rw-dot-hit:active {
   cursor: grabbing;
 }
-.rw-dot-line {
-  stroke: var(--rw-dot-line);
-  stroke-width: 2;
-  opacity: 0.85;
+.rw-layer-guide {
+  fill: none;
+  stroke: var(--rw-sample-color, var(--rw-dot-line));
+  stroke-width: 1;
+  opacity: 0.2;
+  stroke-dasharray: 2 4;
 }
 .rw-center {
   fill: var(--rw-tick-strong);
